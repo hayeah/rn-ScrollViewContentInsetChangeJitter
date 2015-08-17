@@ -49,24 +49,34 @@ var ScrollViewContentInsetChangeJitter = React.createClass({
     var marginTop = this.state.isRefresh ? REFRESH_HEADER_HEIGHT : 0;
 
     return (
-      <View style={[styles.scrollViewWrapper]}>
+      <View>
+
         <View style={styles.refreshHeader}>
-          <TouchableOpacity onPress={this.hideHeader}>
-            <Text>Tap to hide refresh header</Text>
-          </TouchableOpacity>
+          <Text>Refresh Header</Text>
         </View>
-        <ScrollView style={[styles.scrollViewWrapper,{marginTop: marginTop}]}
-          contentOffset={{y: 0}}
-          onResponderRelease={this.refresh}
-          onScroll={this.handleScroll}
-          scrollEventThrottle={4}
-          automaticallyAdjustContentInsets={false}>
-          <Image style={styles.image} source={require("image!hikers")}/>
+
+        <View style={[styles.scrollViewWrapper]}>
+
+          <ScrollView style={[styles.scrollViewWrapper]}
+            contentOffset={{y: 0}}
+            contentContainerStyle={{marginTop: marginTop}}
+            onResponderRelease={this.refresh}
+            onScroll={this.handleScroll}
+            scrollEventThrottle={4}
+            automaticallyAdjustContentInsets={false}>
 
 
+            <View style={styles.scrollContent}>
+              <Image style={styles.image} source={require("image!hikers")}/>
+              <TouchableOpacity onPress={this.hideHeader}>
+                <Text>Tap to hide refresh header</Text>
+              </TouchableOpacity>
+            </View>
 
-        </ScrollView>
+          </ScrollView>
+        </View>
       </View>
+
     );
   }
 });
@@ -74,16 +84,18 @@ var ScrollViewContentInsetChangeJitter = React.createClass({
 var styles = StyleSheet.create({
   scrollViewWrapper: {
     flex: 1,
+    backgroundColor: 'rgba(0,0,0,0)',
 
     // backgroundColor: 'rgba(255,0,0,0.1)',
   },
 
   scrollView: {
+    // backgroundColor: 'rgba(0,0,0,0.1)',
     flex: 1,
   },
 
   refreshHeader: {
-    backgroundColor: 'rgba(255,0,0,0.3)',
+    backgroundColor: 'rgba(255,0,0,1)',
 
     position: 'absolute',
     top: 0,
@@ -95,11 +107,19 @@ var styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  image: {
+  scrollContent: {
     flex: 1,
     // width: 400,
-    height: 800,
+    height: 1000,
   },
+
+  image: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    right: 0,
+  }
 });
 
 AppRegistry.registerComponent('ScrollViewContentInsetChangeJitter', () => ScrollViewContentInsetChangeJitter);
