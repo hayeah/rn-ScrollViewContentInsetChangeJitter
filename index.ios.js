@@ -12,10 +12,15 @@ var {
   View,
   Image,
 
+  ActivityIndicatorIOS,
+
   TouchableOpacity,
   LayoutAnimation,
   ScrollView,
+  StatusBarIOS,
 } = React;
+
+StatusBarIOS.setHidden(true);
 
 var REFRESH_HEADER_HEIGHT = 50;
 
@@ -35,7 +40,7 @@ var ScrollViewContentInsetChangeJitter = React.createClass({
     // change the inset on release
     var {contentInset,contentOffset} = this._scrollEvent;
     console.log("offset y",contentOffset.y);
-    if(contentOffset.y < 0 && this.state.isRefreshing == false) {
+    if(contentOffset.y < -REFRESH_HEADER_HEIGHT && this.state.isRefreshing == false) {
       this.setState({isRefreshing: true});
     }
   },
@@ -49,6 +54,10 @@ var ScrollViewContentInsetChangeJitter = React.createClass({
      Use a timeout callack instead ┐(´д`)┌
   */
   hideHeader: function() {
+    if(!this.state.isRefreshing || this.state.isAnimatingHide) {
+      return;
+    }
+
     console.log("hide header");
     this.setState({isAnimatingHide: true});
     LayoutAnimation.easeInEaseOut(() => {
@@ -71,42 +80,81 @@ var ScrollViewContentInsetChangeJitter = React.createClass({
     var resetOffset;
 
     var {isRefreshing, isAnimatingHide} = this.state;
-    var topInset = isRefreshing ? 0 : -REFRESH_HEADER_HEIGHT;
+    var topInset = isRefreshing ? REFRESH_HEADER_HEIGHT : 0;
 
     // Tried using offset to hide refresh header. Result: abrupt playback.
     // var offset = isRefreshing ? {} : {y: 0};
 
 
     return (
-      <ScrollView style={[styles.scrollView, isAnimatingHide && {marginTop: -REFRESH_HEADER_HEIGHT}]}
-        // Kludge 1: If you fiddle around with contentOffset in anyway, scroll-back would halt abruptly. Avoid that.
-        // contentOffset={offset}
-        contentInset={{top: topInset}}
-        onScroll={this.handleScroll}
-        scrollEventThrottle={4}
-        onResponderRelease={this.handleResponderRelease}
-        automaticallyAdjustContentInsets={false}>
-        <Image style={styles.image} source={require("image!hikers")}/>
-
+      <View style={styles.scrollViewWrapper}>
         <View style={styles.refreshHeader}>
-          <TouchableOpacity onPress={this.hideHeader}>
-            <Text>Tap to hide refresh header</Text>
-          </TouchableOpacity>
+          <ActivityIndicatorIOS size="small"/>
+          <Text>Loading...</Text>
+
         </View>
 
-      </ScrollView>
+        <ScrollView style={[styles.scrollView, isAnimatingHide && {marginTop: -REFRESH_HEADER_HEIGHT}]}
+          // Kludge 1: If you fiddle around with contentOffset in anyway, scroll-back would halt abruptly. Avoid that.
+          // contentOffset={offset}
+          contentInset={{top: topInset}}
+          onScroll={this.handleScroll}
+          scrollEventThrottle={4}
+          onResponderRelease={this.handleResponderRelease}
+          automaticallyAdjustContentInsets={false}>
+
+          <View style={styles.contentView}>
+            <Image style={styles.image} source={require("image!hikers")}/>
+            <TouchableOpacity onPress={this.hideHeader}>
+              <View style={styles.hideRefreshContainer}>
+                <Text style={styles.hideRefreshText}>hide refresh header</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+
+
+
+
+
+
+
+        </ScrollView>
+      </View>
+
     );
   }
 });
 
 var styles = StyleSheet.create({
+  scrollViewWrapper: {
+    flex: 1,
+  },
+
   scrollView: {
     flex: 1,
+    backgroundColor: 'rgba(0,0,0,0)',
+  },
 
+  hideRefreshContainer: {
+    // position: 'absolute',
+    // top: 0,
+    // left: 0,
+    // height: 30,
+    // width: 150,
+    marginTop: 50,
+    padding: 20,
+    alignSelf: 'center',
+
+
+    backgroundColor: 'rgba(0,0,0,0.3)'
+  },
+
+  hideRefreshText: {
+    color: '#fff',
   },
 
   refreshHeader: {
-    backgroundColor: 'rgba(255,0,0,0.3)',
+    backgroundColor: 'rgba(0,0,0,0.3)',
 
     position: 'absolute',
     top: 0,
@@ -114,14 +162,23 @@ var styles = StyleSheet.create({
     right: 0,
     height: 50,
 
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
   },
 
-  image: {
+  contentView: {
     flex: 1,
     // width: 400,
     height: 800,
+  },
+
+  image: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
   },
 });
 
