@@ -22,30 +22,49 @@ var REFRESH_HEADER_HEIGHT = 50;
 var ScrollViewContentInsetChangeJitter = React.createClass({
   getInitialState: function() {
     return {
+      isRefreshing: false,
       topInset: -REFRESH_HEADER_HEIGHT,
     };
   },
 
   handleScroll: function(e) {
     var {contentInset,contentOffset} = e.nativeEvent;
+    this._scrollEvent = e.nativeEvent;
+  },
+
+  handleResponderRelease: function(e) {
+    // change the inset on release
+    var {contentInset,contentOffset} = this._scrollEvent;
     console.log("offset y",contentOffset.y);
-    if(contentOffset.y < 0 && this.state.topInset != 0) {
-      this.setState({topInset: 0});
+    if(contentOffset.y < 0 && this.state.isRefreshing == false) {
+      this.setState({isRefreshing: true});
     }
   },
 
   hideHeader: function() {
     console.log("hide header");
-    this.setState({topInset: -REFRESH_HEADER_HEIGHT});
+    this.setState({isRefreshing: false});
   },
 
   render: function() {
+    var resetOffset;
+
+    var {isRefreshing} = this.state;
+    var topInset = isRefreshing ? 0 : -REFRESH_HEADER_HEIGHT;
+
+    // if contentOffset is set, it behaves strangely again.
+    var offset = {}; // isRefreshing ? {} : {y: 0};
+
+
     return (
       <ScrollView style={styles.scrollView}
-        contentOffset={{y: -this.state.topInset}} /* reset initial offset */
-        contentInset={{top: this.state.topInset}}
+        /* contentOffset={shouldResetOffset ? {y: 0} : undefined} */
+         /* {...resetOffset} */
+        contentOffset={offset}
+        contentInset={{top: topInset}}
         onScroll={this.handleScroll}
         scrollEventThrottle={4}
+        onResponderRelease={this.handleResponderRelease}
         automaticallyAdjustContentInsets={false}>
         <Image style={styles.image} source={require("image!hikers")}/>
 
