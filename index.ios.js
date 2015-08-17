@@ -46,7 +46,7 @@ var ScrollViewContentInsetChangeJitter = React.createClass({
      2. After animation is done, remove margin and add contentInset to hide header.
 
      It works. Except for a weird bug where LayoutAnimation callback doesn't get called.
-     Use a timeout callack instead (lol...)
+     Use a timeout callack instead ┐(´д`)┌
   */
   hideHeader: function() {
     console.log("hide header");
