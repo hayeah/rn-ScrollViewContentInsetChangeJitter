@@ -22,48 +22,57 @@ var REFRESH_HEADER_HEIGHT = 50;
 var ScrollViewContentInsetChangeJitter = React.createClass({
   getInitialState: function() {
     return {
-      topInset: -REFRESH_HEADER_HEIGHT,
+      isRefresh: false,
     };
   },
 
   handleScroll: function(e) {
     var {contentInset,contentOffset} = e.nativeEvent;
     console.log("offset y",contentOffset.y);
-    if(contentOffset.y < 0 && this.state.topInset != 0) {
-      this.setState({topInset: 0});
+    if(contentOffset.y < -REFRESH_HEADER_HEIGHT && this.state.topInset != 0) {
+      this.setState({isRefresh: true});
     }
   },
 
   hideHeader: function() {
     console.log("hide header");
-    this.setState({topInset: -REFRESH_HEADER_HEIGHT});
+    this.setState({isRefresh: false});
   },
 
   render: function() {
-    return (
-      <ScrollView style={styles.scrollView}
-        contentOffset={{y: -this.state.topInset}} /* reset initial offset */
-        contentInset={{top: this.state.topInset}}
-        onScroll={this.handleScroll}
-        scrollEventThrottle={4}
-        automaticallyAdjustContentInsets={false}>
-        <Image style={styles.image} source={require("image!hikers")}/>
+    var marginTop = this.state.isRefresh ? REFRESH_HEADER_HEIGHT : 0;
 
+    return (
+      <View style={[styles.scrollViewWrapper]}>
         <View style={styles.refreshHeader}>
           <TouchableOpacity onPress={this.hideHeader}>
             <Text>Tap to hide refresh header</Text>
           </TouchableOpacity>
         </View>
+        <ScrollView style={[styles.scrollViewWrapper,{marginTop: marginTop}]}
+          contentOffset={{y: 0}}
+          onScroll={this.handleScroll}
+          scrollEventThrottle={4}
+          automaticallyAdjustContentInsets={false}>
+          <Image style={styles.image} source={require("image!hikers")}/>
 
-      </ScrollView>
+
+
+        </ScrollView>
+      </View>
     );
   }
 });
 
 var styles = StyleSheet.create({
-  scrollView: {
+  scrollViewWrapper: {
     flex: 1,
 
+    // backgroundColor: 'rgba(255,0,0,0.1)',
+  },
+
+  scrollView: {
+    flex: 1,
   },
 
   refreshHeader: {
