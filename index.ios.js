@@ -27,9 +27,15 @@ var ScrollViewContentInsetChangeJitter = React.createClass({
   },
 
   handleScroll: function(e) {
-    var {contentInset,contentOffset} = e.nativeEvent;
-    console.log("offset y",contentOffset.y);
-    if(contentOffset.y < -REFRESH_HEADER_HEIGHT && this.state.topInset != 0) {
+
+    this._scrollEvent = e.nativeEvent;
+    // console.log("offset y",contentOffset.y);
+
+  },
+
+  refresh: function() {
+    var {contentInset,contentOffset} = this._scrollEvent;
+    if(contentOffset.y < -REFRESH_HEADER_HEIGHT && this.state.isRefresh == false) {
       this.setState({isRefresh: true});
     }
   },
@@ -51,6 +57,7 @@ var ScrollViewContentInsetChangeJitter = React.createClass({
         </View>
         <ScrollView style={[styles.scrollViewWrapper,{marginTop: marginTop}]}
           contentOffset={{y: 0}}
+          onResponderRelease={this.refresh}
           onScroll={this.handleScroll}
           scrollEventThrottle={4}
           automaticallyAdjustContentInsets={false}>
