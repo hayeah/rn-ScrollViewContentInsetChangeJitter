@@ -13,7 +13,7 @@ var {
   Image,
 
   TouchableOpacity,
-
+  LayoutAnimation,
   ScrollView,
 } = React;
 
@@ -23,7 +23,6 @@ var ScrollViewContentInsetChangeJitter = React.createClass({
   getInitialState: function() {
     return {
       isRefreshing: false,
-      topInset: -REFRESH_HEADER_HEIGHT,
     };
   },
 
@@ -41,26 +40,47 @@ var ScrollViewContentInsetChangeJitter = React.createClass({
     }
   },
 
+  /* Refresh hiding kludge to avoid setting contentOffset.
+
+     1. Use negative margin to animate the entire scrollView up.
+     2. After animation is done, remove margin and add contentInset to hide header.
+
+     It works. Except for a weird bug where LayoutAnimation callback doesn't get called.
+     Use a timeout callack instead (lol...)
+  */
   hideHeader: function() {
     console.log("hide header");
-    this.setState({isRefreshing: false});
+    this.setState({isAnimatingHide: true});
+    LayoutAnimation.easeInEaseOut(() => {
+      console.log("end hide animation");
+      // this.setState({isAnimatingHide: false, isRefreshing: false});
+    },() => {
+      console.log("hide animation error");
+    });
+
+    setTimeout(() => {
+      console.log("end hide animation");
+      this.setState({isAnimatingHide: false, isRefreshing: false});
+    },300);
+    // this.setState({isRefreshing: false});
+
   },
 
   render: function() {
+    console.log(this.state);
     var resetOffset;
 
-    var {isRefreshing} = this.state;
+    var {isRefreshing, isAnimatingHide} = this.state;
     var topInset = isRefreshing ? 0 : -REFRESH_HEADER_HEIGHT;
 
-    // if contentOffset is set, it behaves strangely again.
-    var offset = {}; // isRefreshing ? {} : {y: 0};
+    // Tried using offset to hide refresh header. Result: abrupt playback.
+    // var offset = isRefreshing ? {} : {y: 0};
 
 
     return (
-      <ScrollView style={styles.scrollView}
-        /* contentOffset={shouldResetOffset ? {y: 0} : undefined} */
-         /* {...resetOffset} */
-        contentOffset={offset}
+      <ScrollView style={[styles.scrollView, isAnimatingHide && {marginTop: -REFRESH_HEADER_HEIGHT}]}
+        // Kludge 1: If you fiddle around with contentOffset in anyway, scroll-back would halt abruptly. Avoid that.
+        // contentOffset={offset}
         contentInset={{top: topInset}}
         onScroll={this.handleScroll}
         scrollEventThrottle={4}
